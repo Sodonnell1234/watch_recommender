@@ -46,10 +46,22 @@ def removeMovie(profile):
         answer = input("Enter movie name (-1 to exit) -> ")
         if answer == '-1':
             break
-        if answer not in profile['ratings']:
+
+        in_list = any(
+            entry["title"] == answer
+            for entry in profile["ratings"])
+
+        if not in_list:
             print("Movie not in profile\n")
+            continue
+
         print(f"removing {answer}")
-        profile["ratings"].remove(answer)
+        i = -1
+        for entry in profile["ratings"]:
+            i += 1
+            if entry["title"] == answer:
+                del profile["ratings"][i]
+                break
 
 # Method for changing the rating of a movie in your profile list
 def changeRating(profile):
@@ -57,38 +69,47 @@ def changeRating(profile):
         answer = input("Enter movie name (-1 to exit) -> ")
         if answer == '-1':
             break
+
         already_rated = any(
             entry["title"] == answer
             for entry in profile["ratings"])
+
         if not already_rated:
             print("Movie not in profile\n")
             continue
+
         print(f"editing {answer}\n")
+
         while True:
             change = input("Enter your new rating -> ").strip()
+
             if change.isdigit() and 1 <= int(change) <= 10:
                 for entry in profile["ratings"]:
                     if entry["title"] == answer:
                         entry["rating"] = int(change)
                         break
+
                 break
+
             else:
                 print("Enter a valid number!\n")
                 continue
 
 def editMode(profile):
     while True:
-        edit = input("What would you like to do?\n"
+        edit = input("What would you like to do? (-1 to quit)\n"
                      "Add a movie? (A)\n"
                      "Remove a movie? (R)\n"
                      "Change a rating? (C)\n"
-                     "-> ").upper()
-        if edit not in {'A', 'R', 'C'}:
+                     "-> ").lower()
+        if edit == '-1':
+            break
+        if edit not in {'a', 'r', 'c'}:
             print("Not a valid choice!")
             continue
-        if edit == 'A':
+        if edit == 'a':
             addMovie(profile)
-        elif edit == 'R':
+        elif edit == 'r':
             removeMovie(profile)
         else:
             changeRating(profile)
