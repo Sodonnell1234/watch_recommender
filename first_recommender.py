@@ -21,12 +21,21 @@ items = pd.DataFrame([
 def addMovie(profile):
     while True:
         setup = {"title": '', "rating": 0}
-        answer = input("Enter movie name (-1 to exit) -> ")
+        answer = input("Enter movie/show name (-1 to exit) -> ")
         if answer == '-1':
             break
         if answer not in items["title"]:
-            print("Movie not in datset")
+            print("Movie/Show not in datset\n")
             continue
+
+        already_rated = any(
+            entry["title"] == answer
+            for entry in profile["ratings"])
+
+        if already_rated:
+            print("Movie/Show already logged\n")
+            continue
+
         setup['title'] = answer
         print(f"append {setup['title']}")
         while True:
@@ -43,7 +52,7 @@ def addMovie(profile):
 # Method for removing a movie from a profile
 def removeMovie(profile):
     while True:
-        answer = input("Enter movie name (-1 to exit) -> ")
+        answer = input("Enter movie/show name (-1 to exit) -> ")
         if answer == '-1':
             break
 
@@ -52,7 +61,7 @@ def removeMovie(profile):
             for entry in profile["ratings"])
 
         if not in_list:
-            print("Movie not in profile\n")
+            print("Movie/Show not in profile\n")
             continue
 
         print(f"removing {answer}")
@@ -61,12 +70,13 @@ def removeMovie(profile):
             i += 1
             if entry["title"] == answer:
                 del profile["ratings"][i]
+                path.write_text(json.dumps(profile, indent=2), encoding="utf-8")
                 break
 
 # Method for changing the rating of a movie in your profile list
 def changeRating(profile):
     while True:
-        answer = input("Enter movie name (-1 to exit) -> ")
+        answer = input("Enter movie/show name (-1 to exit) -> ")
         if answer == '-1':
             break
 
@@ -75,7 +85,7 @@ def changeRating(profile):
             for entry in profile["ratings"])
 
         if not already_rated:
-            print("Movie not in profile\n")
+            print("Movie/Show not in profile\n")
             continue
 
         print(f"editing {answer}\n")
@@ -98,8 +108,8 @@ def changeRating(profile):
 def editMode(profile):
     while True:
         edit = input("What would you like to do? (-1 to quit)\n"
-                     "Add a movie? (A)\n"
-                     "Remove a movie? (R)\n"
+                     "Add a movie/show? (A)\n"
+                     "Remove a movie/show? (R)\n"
                      "Change a rating? (C)\n"
                      "-> ").lower()
         if edit == '-1':
@@ -158,13 +168,7 @@ else:
 
     addMovie(profile)
 
-ratings = pd.DataFrame([
-    {"title": "Stranger Things", "rating": 5},
-    {"title": "The Office", "rating": 4},
-    {"title": "Interstellar", "rating": 5},
-    {"title": "Parks and Rec", "rating": 2},
-])
-
+ratings = profile["ratings"]
 # 1) Find all unique genres in the catalog
 all_genres = sorted({g for gs in items["genres"] for g in gs})
 
