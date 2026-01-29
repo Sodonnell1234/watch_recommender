@@ -42,10 +42,8 @@ def addMovie(profile, path):
         # Use the title from the dataset
         nice_title = title_lookup[user_key]
 
-        already_rated = any(
-            norm_title(entry["title"]) == user_key
-            for entry in profile["ratings"]
-        )
+        already_rated = any(norm_title(entry["title"]) == user_key
+            for entry in profile["ratings"])
 
         if already_rated:
             print("Movie/Show already logged\n")
