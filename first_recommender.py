@@ -57,16 +57,24 @@ def changeRating(profile):
         answer = input("Enter movie name (-1 to exit) -> ")
         if answer == '-1':
             break
-        if answer not in profile["ratings"]:
-            print("Movie not in profile")
-        print(f"editing {answer} which was rated a {profile['ratings']}")
+        already_rated = any(
+            entry["title"] == answer
+            for entry in profile["ratings"])
+        if not already_rated:
+            print("Movie not in profile\n")
+            continue
+        print(f"editing {answer}\n")
         while True:
             change = input("Enter your new rating -> ").strip()
-            if change.isdigit():
-                profile['ratings']['title']['rating'] = int(change)
+            if change.isdigit() and 1 <= int(change) <= 10:
+                for entry in profile["ratings"]:
+                    if entry["title"] == answer:
+                        entry["rating"] = int(change)
+                        break
                 break
             else:
                 print("Enter a valid number!\n")
+                continue
 
 def editMode(profile):
     while True:
