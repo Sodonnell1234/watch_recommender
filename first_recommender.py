@@ -17,24 +17,74 @@ items = pd.DataFrame([
     {"title": "Severance", "genres": ["Sci-Fi", "Drama", "Thriller"]},
 ])
 
+# Method for adding movies to a profile
 def addMovie(profile):
     while True:
-        setup = {"title": '', "rating": ''}
+        setup = {"title": '', "rating": 0}
         answer = input("Enter movie name (-1 to exit) -> ")
         if answer == '-1':
             break
+        if answer not in items["title"]:
+            print("Movie not in datset")
+            continue
         setup['title'] = answer
         print(f"append {setup['title']}")
         while True:
             answer = input(f"Enter the rating for {setup['title']} (1 worst -> 10 best) -> ")
-            if answer.isdigit() and int(answer) >= 1 and int(answer) <= 10:
+            if answer.isdigit() and 1 <= int(answer) <= 10:
                 break
         rating = int(answer)
         print(f"append {rating}")
-        setup["rating"] = rating
+        setup["rating"] = int(rating)
         profile["ratings"].append(setup)
     path.write_text(json.dumps(profile, indent=2), encoding="utf-8")
-    ratings_df = pd.DataFrame(profile["ratings"])
+    return pd.DataFrame(profile["ratings"])
+
+# Method for removing a movie from a profile
+def removeMovie(profile):
+    while True:
+        answer = input("Enter movie name (-1 to exit) -> ")
+        if answer == '-1':
+            break
+        if answer not in profile['ratings']:
+            print("Movie not in profile\n")
+        print(f"removing {answer}")
+        profile["ratings"].remove(answer)
+
+# Method for changing the rating of a movie in your profile list
+def changeRating(profile):
+    while True:
+        answer = input("Enter movie name (-1 to exit) -> ")
+        if answer == '-1':
+            break
+        if answer not in profile["ratings"]:
+            print("Movie not in profile")
+        print(f"editing {answer} which was rated a {profile['ratings']}")
+        while True:
+            change = input("Enter your new rating -> ").strip()
+            if change.isdigit():
+                profile['ratings']['title']['rating'] = int(change)
+                break
+            else:
+                print("Enter a valid number!\n")
+
+def editMode(profile):
+    while True:
+        edit = input("What would you like to do?\n"
+                     "Add a movie? (A)\n"
+                     "Remove a movie? (R)\n"
+                     "Change a rating? (C)\n"
+                     "-> ").upper()
+        if edit not in {'A', 'R', 'C'}:
+            print("Not a valid choice!")
+            continue
+        if edit == 'A':
+            addMovie(profile)
+        elif edit == 'R':
+            removeMovie(profile)
+        else:
+            changeRating(profile)
+
 
 
 # User history or create a new user
@@ -62,6 +112,7 @@ if path.exists():
 
         if action == "E":
             print("Editing mode")
+            editMode(profile)
         elif action == "R":
             print("Recommending mode")
         elif action == "Q":
