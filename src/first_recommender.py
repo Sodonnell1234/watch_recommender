@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from pathlib import Path
 import json
 
@@ -171,7 +170,7 @@ def main() -> None:
     # User history or create a new user
     user = input("Enter your username: ").strip().lower()
 
-    profiles_dir = Path("profiles")
+    profiles_dir = Path("../profiles")
     profiles_dir.mkdir(exist_ok=True)  # create folder if needed
 
     path = profiles_dir / f"{user}.json"
