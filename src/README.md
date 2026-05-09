@@ -1,0 +1,1 @@
+Going to have to pick this project back up, initially planned on making a reccomendation system based on clustering from data from some movie/tv reviewing site that held peoples watchlists and their ratings.

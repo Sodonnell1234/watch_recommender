@@ -2,7 +2,7 @@ import pandas as pd
 from pathlib import Path
 import json
 
-# A tiny "catalog" of movies/shows
+#small set of movies/shows for tesing
 items = pd.DataFrame([
     {"title": "Stranger Things", "genres": ["Sci-Fi", "Drama", "Thriller"]},
     {"title": "The Office", "genres": ["Comedy"]},
@@ -19,12 +19,11 @@ items = pd.DataFrame([
 def norm_title(s: str) -> str:
     return s.strip().lower()
 
-# Build normalized catalog helpers
+# normalized hgelpers
 catalog_keys = {norm_title(t) for t in items["title"]}
 title_lookup = {norm_title(t): t for t in items["title"]}
 
 
-# Method for adding movies to a profile
 def addMovie(profile, path):
     while True:
         setup = {"title": '', "rating": 0}
@@ -38,7 +37,7 @@ def addMovie(profile, path):
             print("Movie/Show not in dataset\n")
             continue
 
-        # Use the title from the dataset
+        #title from dataset
         nice_title = title_lookup[user_key]
 
         already_rated = any(norm_title(entry["title"]) == user_key
@@ -64,8 +63,6 @@ def addMovie(profile, path):
     path.write_text(json.dumps(profile, indent=2), encoding="utf-8")
     return pd.DataFrame(profile["ratings"])
 
-
-# Method for removing a movie from a profile
 def removeMovie(profile, path):
     while True:
         answer = input("Enter movie/show name (-1 to exit) -> ")
@@ -93,8 +90,6 @@ def removeMovie(profile, path):
                 path.write_text(json.dumps(profile, indent=2), encoding="utf-8")
                 break
 
-
-# Method for changing the rating of a movie in your profile list
 def changeRating(profile):
     while True:
         answer = input("Enter movie/show name (-1 to exit) -> ")
@@ -156,7 +151,7 @@ def editMode(profile, path):
 
 
 def explain(genre_matrix, user_profile, title: str, top_k: int = 3) -> str:
-    # Which genres of this item contribute most to the score?
+    #which genres of this item contribute most to the score?
     item_vec = genre_matrix.loc[title]
     contrib = item_vec * user_profile
     top = contrib.sort_values(ascending=False).head(top_k)
@@ -167,7 +162,7 @@ def explain(genre_matrix, user_profile, title: str, top_k: int = 3) -> str:
 
 
 def main() -> None:
-    # User history or create a new user
+    #user history or make a new one
     user = input("Enter your username: ").strip().lower()
 
     profiles_dir = Path("../profiles")
@@ -179,7 +174,7 @@ def main() -> None:
         print("Profile found!\n")
 
         profile = json.loads(path.read_text(encoding="utf-8"))
-        # profile is a dict like {"username": "...", "ratings": [...]}
+        #profile is a dict like {"username": "...", "ratings": [...]}
 
         while True:
             action = input(
@@ -207,30 +202,30 @@ def main() -> None:
     else:
         print("Profile not found. Creating new profile.\n")
 
-        # Create the .json for the user
+        #create json for a user
         profile = {"username": user, "ratings": []}
         path.write_text(json.dumps(profile, indent=2), encoding="utf-8")
 
         addMovie(profile, path)
 
-    # Build ratings DataFrame from stored ratings
+    #build dataframe from stored ratings
     ratings = pd.DataFrame(profile["ratings"])
 
     if ratings.empty:
         print("\nNo ratings found. Add some titles first.")
         return
 
-    # 1) Find all unique genres in the catalog
+    #find all unique genres in the catalog
     all_genres = sorted({g for gs in items["genres"] for g in gs})
 
-    # 2) Build a one-hot matrix: each row = item, each column = genre
+    #one-hot matrix each row = item, each column = genre
     genre_matrix = pd.DataFrame(0, index=items["title"], columns=all_genres)
 
     for _, row in items.iterrows():
         for g in row["genres"]:
             genre_matrix.loc[row["title"], g] = 1
 
-    # Join ratings with the genre vectors of those titles
+    #join ratings with the genre vectors of those titles
     rated = ratings.merge(
         genre_matrix.reset_index().rename(columns={"index": "title"}),
         on="title",
@@ -241,27 +236,25 @@ def main() -> None:
         print("\nNone of your rated titles matched the catalog. (Check titles / normalization.)")
         return
 
-    # Compute preference score per genre as a weighted average
-    # (rating * genre_indicator), summed across watched items
+    # Compute preference score per genre (rating * genre_indicator), summed across watched items
     genre_cols = all_genres
     weighted_sum = (rated[genre_cols].T * rated["rating"].values).T.sum(axis=0)
 
-    # Normalize so the vector is easier to interpret
     user_profile = weighted_sum / weighted_sum.sum()
 
     print("\nUser preference profile (higher = you like that genre more):")
     print(user_profile.sort_values(ascending=False))
 
-    # Titles already rated should not be recommended
+    #titles already rated
     rated_titles = set(ratings["title"])
 
-    # Score = dot(item_genre_vector, user_profile)
+    #score = dot(item_genre_vector, user_profile)
     scores = genre_matrix.dot(user_profile)
 
-    # Remove already-rated items
+    #remove already-rated
     scores = scores[~scores.index.isin(rated_titles)]
 
-    # Top recommendations
+    #top recs
     top_n = 5
     recs = scores.sort_values(ascending=False).head(top_n)
 
